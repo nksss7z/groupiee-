@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Groupie Tracker - Accueil</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <button class="theme-toggle" id="themeToggle" title="Changer de thème">🌙</button>
+    
+    <div id="artist-names" data-names="{{range $i, $a := .Artists}}{{if $i}}|{{end}}{{$a.Name}}{{end}}" data-images="{{range $i, $a := .Artists}}{{if $i}}|{{end}}{{$a.Image}}{{end}}" hidden></div>
+    <div class="api-ribbons" aria-hidden="true">
+        <div class="api-ribbon slow"></div>
+        <div class="api-ribbon reverse"></div>
+        <div class="api-ribbon fast"></div>
+        <div class="api-ribbon reverse slow"></div>
+    </div>
+    <header>
+        <div class="container">
+            <h1>🎵 Groupie Tracker</h1>
+            <p class="subtitle">Découvrez vos artistes préférés et leurs tournées</p>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="controls-bar">
+                <select id="sortBy" class="sort-select">
+                    <option value="">Trier par...</option>
+                    <option value="name">Nom (A-Z)</option>
+                    <option value="name-desc">Nom (Z-A)</option>
+                    <option value="creation">Année de création ↑</option>
+                    <option value="creation-desc">Année de création ↓</option>
+                    <option value="album">Premier album ↑</option>
+                    <option value="album-desc">Premier album ↓</option>
+                    <option value="members">Nombre de membres ↑</option>
+                    <option value="members-desc">Nombre de membres ↓</option>
+                </select>
+                
+                <button id="viewToggle" class="view-toggle" title="Changer de vue">⊞</button>
+                
+                <label class="favorites-filter">
+                    <input type="checkbox" id="showFavorites">
+                    <span class="toggle-switch"></span>
+                    <span>❤️ Favoris</span>
+                    <span class="favorites-count" id="favCount">0</span>
+                </label>
+            </div>
+
+            <div class="search-section">
+                <input type="text" id="searchInput" placeholder="Rechercher un artiste, un membre, une ville..." class="search-input">
+                <div class="filters">
+                    <label>
+                        <span>Date de création:</span>
+                        <input type="number" id="minYear" placeholder="Min" min="1900" max="2024">
+                        <input type="number" id="maxYear" placeholder="Max" min="1900" max="2024">
+                    </label>
+                    <label>
+                        <span>Premier album:</span>
+                        <input type="number" id="minAlbum" placeholder="Min" min="1900" max="2024">
+                        <input type="number" id="maxAlbum" placeholder="Max" min="1900" max="2024">
+                    </label>
+                    <label>
+                        <span>Nombre de membres:</span>
+                        <input type="number" id="minMembers" placeholder="Min" min="1" max="20">
+                        <input type="number" id="maxMembers" placeholder="Max" min="1" max="20">
+                    </label>
+                </div>
+            </div>
+
+            <div class="artists-grid grid-view" id="artistsGrid">
+                {{range .Artists}}
+                <div class="artist-card" 
+                     data-name="{{.Name}}" 
+                     data-members="{{range .Members}}{{.}},{{end}}"
+                     data-creation="{{.CreationDate}}"
+                     data-album="{{.FirstAlbum}}"
+                     data-member-count="{{len .Members}}">
+                    <a href="/artist?id={{.ID}}">
+                        <div class="artist-image">
+                            <img src="{{.Image}}" alt="{{.Name}}">
+                            <div class="overlay">
+                                <span class="view-details">Voir les détails</span>
+                            </div>
+                        </div>
+                        <div class="artist-info">
+                            <h2 class="artist-name">{{.Name}}</h2>
+                            <div class="artist-meta">
+                                <p><strong>Membres:</strong> <span class="badge badge-primary" title="Nombre de membres">{{len .Members}} 👥</span></p>
+                                <p><strong>Création:</strong> <span class="badge badge-secondary" title="Année de création">{{.CreationDate}} 📅</span></p>
+                                <p><strong>Premier album:</strong> {{.FirstAlbum}}</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {{end}}
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Groupie Tracker - Tous droits réservés</p>
+        </div>
+    </footer>
+
+    <script src="/static/js/ribbons.js"></script>
+    <script src="/static/js/script.js"></script>
+    <script src="/static/js/features.js"></script>
+</body>
+</html>

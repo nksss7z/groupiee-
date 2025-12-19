@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Artist.Name}} - Groupie Tracker</title>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <button class="theme-toggle" id="themeToggle" title="Changer de thème">🌙</button>
+    <button class="share-btn" title="Partager">🔗</button>
+    
+    <div id="artist-names" data-names="{{.Artist.Name}}|{{.Artist.Name}}|{{.Artist.Name}}" data-images="{{.Artist.Image}}|{{.Artist.Image}}|{{.Artist.Image}}" hidden></div>
+    <div class="api-ribbons" aria-hidden="true">
+        <div class="api-ribbon slow"></div>
+        <div class="api-ribbon reverse"></div>
+        <div class="api-ribbon fast"></div>
+        <div class="api-ribbon reverse slow"></div>
+    </div>
+    <header>
+        <div class="container">
+            <a href="/" class="back-link">← Retour</a>
+            <h1>{{.Artist.Name}}</h1>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="artist-detail">
+                <div class="artist-header">
+                    <div class="artist-image-large">
+                        <img src="{{.Artist.Image}}" alt="{{.Artist.Name}}">
+                    </div>
+                    <div class="artist-info-detail">
+                        <h2>Informations</h2>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Date de création:</span>
+                                <span class="info-value">{{.Artist.CreationDate}}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Premier album:</span>
+                                <span class="info-value">{{.Artist.FirstAlbum}}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Nombre de membres:</span>
+                                <span class="info-value">{{len .Artist.Members}}</span>
+                            </div>
+                        </div>
+
+                        <div class="members-section">
+                            <h3>Membres du groupe</h3>
+                            <ul class="members-list">
+                                {{range .Artist.Members}}
+                                <li>{{.}}</li>
+                                {{end}}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                {{if .Relation}}
+                    <div class="map-section">
+                        <h2>🗺️ Carte des concerts</h2>
+                        <div id="map"></div>
+                        <div id="locations-data" style="display: none;">
+                            {{range $location, $dates := .Relation.DatesLocations}}
+                            <div class="location-item" data-location="{{$location}}" data-dates="{{range $index, $date := $dates}}{{if $index}},{{end}}{{$date}}{{end}}"></div>
+                            {{end}}
+                        </div>
+                    </div>
+
+                <div class="concerts-section">
+                    <h2>Dates de concerts</h2>
+                    <div class="concerts-grid">
+                        {{range $location, $dates := .Relation.DatesLocations}}
+                        <div class="concert-card">
+                            <h3 class="concert-location">📍 {{$location}}</h3>
+                            <ul class="concert-dates">
+                                {{range $dates}}
+                                <li>{{.}}</li>
+                                {{end}}
+                            </ul>
+                        </div>
+                        {{end}}
+                    </div>
+                </div>
+                {{else}}
+                <div class="no-concerts">
+                    <p>Aucune date de concert disponible pour le moment.</p>
+                </div>
+                {{end}}
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Groupie Tracker - Tous droits réservés</p>
+        </div>
+    </footer>
+        <script src="/static/js/ribbons.js"></script>
+        <script src="/static/js/map.js"></script>
+        <script src="/static/js/features.js"></script>
+</body>
+</html>
