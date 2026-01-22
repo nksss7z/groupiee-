@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
         maxZoom: 19
     }).addTo(map);
 
-    // Icône personnalisée pour les marqueurs
+
     const customIcon = L.divIcon({
         className: 'custom-marker',
         html: '<div class="marker-pin"></div>',

@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-// ParseID convertit une chaîne en entier de manière simple
+
 func ParseID(id string) int {
 	var result int
 	for _, c := range id {
@@ -26,8 +26,6 @@ func ParseID(id string) int {
 	return result
 }
 
-// EnsureDevCert s'assure qu'un certificat auto-signé existe aux chemins donnés.
-// Il génère un certificat pour localhost si les fichiers sont absents.
 func EnsureDevCert(certPath, keyPath string) error {
 	if fileExists(certPath) && fileExists(keyPath) {
 		return nil
@@ -37,7 +35,6 @@ func EnsureDevCert(certPath, keyPath string) error {
 		return err
 	}
 
-	// Générer une clé privée ECDSA P-256
 	priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		return err

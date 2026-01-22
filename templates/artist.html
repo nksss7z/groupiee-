@@ -56,7 +56,6 @@
     </style>
 </head>
 <body>
-    <!-- Musique de fond -->
     <audio id="bgMusic" loop>
         <source src="/assets/backgroundmusic.m4a" type="audio/mp4">
     </audio>
@@ -83,13 +82,11 @@
             }
         });
 
-        // Musique coupée par défaut
         setState(false);
     </script>
 
     <button class="theme-toggle" id="themeToggle" title="Changer de thème">🌙</button>
     <button class="lang-toggle" id="langBtn" title="Switch language">🇫🇷</button>
-    <button class="share-btn" title="Partager">Partager</button>
     
     <div id="artist-names" data-names="{{.Artist.Name}}|{{.Artist.Name}}|{{.Artist.Name}}" data-images="{{.Artist.Image}}|{{.Artist.Image}}|{{.Artist.Image}}" hidden></div>
     <div class="api-ribbons" aria-hidden="true">
@@ -238,23 +235,67 @@
 
     <!-- Modal de paiement -->
     <div id="paymentModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content payment-modal-content">
             <span class="close">&times;</span>
             <h2 class="modal-payment-title">Paiement sécurisé</h2>
             
-            <div class="payment-info">
-                <p><strong class="payment-amount-label">Montant à payer:</strong> <span id="paymentAmount">0</span>€</p>
-            </div>
-
-            <div class="payment-form">
-                <input type="text" id="cardNumber" placeholder="Numéro de carte" maxlength="16" required>
-                <div class="card-details">
-                    <input type="text" id="cardExpiry" placeholder="MM/AA" maxlength="5" required>
-                    <input type="text" id="cardCVV" placeholder="CVV" maxlength="3" required>
+            <div class="payment-transaction-info">
+                <div class="transaction-header">
+                    <span>Votre transaction</span>
+                    <div class="security-badge">
+                        <span>🔒</span>
+                        <small>100% sécurisé</small>
+                    </div>
+                </div>
+                <div class="transaction-details">
+                    <div class="transaction-item">
+                        <span class="label">Marchand</span>
+                        <span class="value" id="merchantName">Groupie Tracker</span>
+                    </div>
+                    <div class="transaction-item">
+                        <span class="label">Montant</span>
+                        <span class="value amount" id="paymentAmount">0</span>€
+                    </div>
                 </div>
             </div>
 
-            <button id="confirmPayment" class="btn-primary">Confirmer le paiement</button>
+            <div class="payment-form-section">
+                <h3>Votre carte</h3>
+                <div class="card-logos">
+                    <span>💳 VISA</span>
+                    <span>💳 Mastercard</span>
+                    <span>💳 CB</span>
+                </div>
+                
+                <div class="payment-form">
+                    <div class="form-group">
+                        <label for="cardholderName">Nom du titulaire</label>
+                        <input type="text" id="cardholderName" placeholder="Jean Dupont" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cardNumber">Numéro de carte</label>
+                        <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cardExpiry">Date d'expiration</label>
+                            <input type="text" id="cardExpiry" placeholder="MM/AA" maxlength="5" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="cardCVV">CVV</label>
+                            <input type="text" id="cardCVV" placeholder="123" maxlength="3" required>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="confirmPayment" class="btn-pay">Payer <span id="payAmount">0</span>€</button>
+                
+                <div class="payment-footer">
+                    <small>Vos données sont chiffrées et sécurisées</small>
+                </div>
+            </div>
         </div>
     </div>
 

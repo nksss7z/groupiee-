@@ -11,17 +11,12 @@ import (
 )
 
 var (
-	// Artists contient tous les artistes chargés depuis l'API
 	Artists []models.Artist
-	// Locations contient toutes les locations indexées par ID
 	Locations map[int]models.Location
-	// Dates contient toutes les dates indexées par ID
 	Dates map[int]models.Dates
-	// Relations contient toutes les relations indexées par ID
 	Relations map[int]models.Relation
 )
 
-// LoadData charge toutes les données depuis l'API Groupie Tracker
 func LoadData() error {
 	if err := fetchArtists(); err != nil {
 		return err
@@ -36,7 +31,6 @@ func LoadData() error {
 		return err
 	}
 
-	// Tri alphabétique des artistes (insensible à la casse)
 	sort.Slice(Artists, func(i, j int) bool {
 		return strings.ToLower(Artists[i].Name) < strings.ToLower(Artists[j].Name)
 	})

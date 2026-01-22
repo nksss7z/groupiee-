@@ -204,6 +204,7 @@ async function createOrder() {
             
             document.getElementById('bookingModal').style.display = 'none';
             document.getElementById('paymentAmount').textContent = order.totalPrice.toFixed(2);
+            document.getElementById('payAmount').textContent = order.totalPrice.toFixed(2);
             document.getElementById('paymentModal').style.display = 'block';
         } else {
             alert('Erreur lors de la création de la commande');
@@ -214,13 +215,11 @@ async function createOrder() {
     }
 }
 
-function initPayPalButtons(order) {
-}
-
 async function processPayment() {
     const paymentData = {
         orderId: currentOrderId,
-        cardNumber: document.getElementById('cardNumber').value.trim(),
+        cardholderName: document.getElementById('cardholderName').value.trim(),
+        cardNumber: document.getElementById('cardNumber').value.replace(/\s/g, ''),
         cardExpiry: document.getElementById('cardExpiry').value.trim(),
         cardCvv: document.getElementById('cardCVV').value.trim()
     };
@@ -237,7 +236,6 @@ async function processPayment() {
         if (response.ok) {
             const result = await response.json();
             
-            // Afficher la confirmation
             document.getElementById('paymentModal').style.display = 'none';
             document.getElementById('confirmEmail').textContent = result.order.email;
             document.getElementById('orderId').textContent = result.order.id;
@@ -251,27 +249,56 @@ async function processPayment() {
     }
 }
 
+function validatePayment() {
+    const cardholderName = document.getElementById('cardholderName').value.trim();
+    const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+    const cardExpiry = document.getElementById('cardExpiry').value.trim();
+    const cardCVV = document.getElementById('cardCVV').value.trim();
+
+    if (!cardholderName || cardholderName.length < 3) {
+        alert('Nom du titulaire invalide');
+        return false;
+    }
+
+    if (cardNumber.length !== 16 || !/^\d+$/.test(cardNumber)) {
+        alert('Numéro de carte invalide');
+        return false;
+    }
+
+    if (!/^\d{2}\/\d{2}$/.test(cardExpiry)) {
+        alert('Date d\'expiration invalide (format MM/AA)');
+        return false;
+    }
+
+    if (cardCVV.length !== 3 || !/^\d+$/.test(cardCVV)) {
+        alert('CVV invalide');
+        return false;
+    }
+
+    return true;
+}
+
 function closeAllModals() {
     document.getElementById('bookingModal').style.display = 'none';
     document.getElementById('paymentModal').style.display = 'none';
     document.getElementById('confirmationModal').style.display = 'none';
     
-    // Réinitialiser les champs de paiement
+    document.getElementById('cardholderName').value = '';
     document.getElementById('cardNumber').value = '';
     document.getElementById('cardExpiry').value = '';
     document.getElementById('cardCVV').value = '';
 }
 
 function formatPaymentFields() {
-    // Formater automatiquement le numéro de carte
     const cardNumberInput = document.getElementById('cardNumber');
     if (cardNumberInput) {
         cardNumberInput.addEventListener('input', function(e) {
-            this.value = this.value.replace(/\D/g, '');
+            let value = this.value.replace(/\s/g, '').replace(/\D/g, '');
+            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+            this.value = formattedValue;
         });
     }
 
-    // Formater la date d'expiration
     const cardExpiryInput = document.getElementById('cardExpiry');
     if (cardExpiryInput) {
         cardExpiryInput.addEventListener('input', function(e) {
@@ -283,7 +310,6 @@ function formatPaymentFields() {
         });
     }
 
-    // Formater le CVV
     const cardCVVInput = document.getElementById('cardCVV');
     if (cardCVVInput) {
         cardCVVInput.addEventListener('input', function(e) {
@@ -291,4 +317,3 @@ function formatPaymentFields() {
         });
     }
 }
-

@@ -154,3 +154,43 @@ func ProcessPayment(w http.ResponseWriter, r *http.Request) {
 		"order":   order,
 	})
 }
+
+func ProcessPayPalPayment(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var paymentData struct {
+		OrderID       string                 `json:"orderId"`
+		PayPalOrderID string                 `json:"paypalOrderId"`
+		PayPalDetails map[string]interface{} `json:"paypalDetails"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&paymentData)
+	if err != nil {
+		http.Error(w, "Données invalides", http.StatusBadRequest)
+		return
+	}
+
+	order, exists := orders[paymentData.OrderID]
+	if !exists {
+		http.Error(w, "Commande introuvable", http.StatusNotFound)
+		return
+	}
+
+	if paymentData.PayPalOrderID == "" {
+		http.Error(w, "ID de transaction PayPal manquant", http.StatusBadRequest)
+		return
+	}
+
+	order.Status = "completed"
+	orders[paymentData.OrderID] = order
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"message": "Paiement PayPal effectué avec succès",
+		"order":   order,
+	})
+}
