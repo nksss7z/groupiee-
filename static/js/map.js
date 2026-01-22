@@ -23,9 +23,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const customIcon = L.divIcon({
         className: 'custom-marker',
         html: '<div class="marker-pin"></div>',
-        iconSize: [30, 42],
-        iconAnchor: [15, 42],
-        popupAnchor: [0, -42]
+        iconSize: [16, 16],
+        iconAnchor: [8, 8],
+        popupAnchor: [0, -8]
     });
 
     const markers = [];

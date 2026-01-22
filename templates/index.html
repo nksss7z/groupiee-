@@ -85,7 +85,7 @@
                             </div>
                         </div>
                         <div class="artist-info">
-                            <h2 class="artist-name">{{.Name}}</h2>
+                            <h2 class="artist-name" onclick="event.preventDefault(); event.stopPropagation(); showBioFromCard(this);" style="cursor: pointer;">{{.Name}}</h2>
                             <div class="artist-meta">
                                 <p><strong>Membres:</strong> <span class="badge badge-primary" title="Nombre de membres">{{len .Members}} 👥</span></p>
                                 <p><strong>Création:</strong> <span class="badge badge-secondary" title="Année de création">{{.CreationDate}} 📅</span></p>
@@ -105,8 +105,33 @@
         </div>
     </footer>
 
+    <!-- Modal Biographie -->
+    <div id="bioModal" class="bio-modal">
+        <div class="bio-modal-content">
+            <span class="bio-close">&times;</span>
+            <div class="bio-header">
+                <h2 id="bioArtistName"></h2>
+            </div>
+            <div class="bio-body">
+                <div class="bio-section">
+                    <h3>📋 À propos</h3>
+                    <p id="bioText"></p>
+                </div>
+                <div class="bio-section">
+                    <h3>👥 Membres</h3>
+                    <ul id="bioMembers"></ul>
+                </div>
+                <div class="bio-section">
+                    <h3>📅 Formation</h3>
+                    <p id="bioYear"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="/static/js/ribbons.js"></script>
     <script src="/static/js/script.js"></script>
     <script src="/static/js/features.js"></script>
+    <script src="/static/js/bio.js"></script>
 </body>
 </html>

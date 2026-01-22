@@ -1,15 +1,17 @@
 package handlers
 
 import (
+	"encoding/json"
+	"fmt"
 	"html/template"
 	"net/http"
+	"time"
 
 	"groupieee/api"
 	"groupieee/models"
 	"groupieee/utils"
 )
 
-// Home affiche la page d'accueil avec la liste des artistes
 func Home(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
@@ -34,7 +36,6 @@ func Home(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Artist affiche la page de détail d'un artiste
 func Artist(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
 	if id == "" {
@@ -45,7 +46,6 @@ func Artist(w http.ResponseWriter, r *http.Request) {
 	var artist *models.Artist
 	var artistRelation *models.Relation
 
-	// Rechercher l'artiste
 	artistID := utils.ParseID(id)
 	for i := range api.Artists {
 		if api.Artists[i].ID == artistID {
@@ -59,7 +59,6 @@ func Artist(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Récupérer les relations
 	if rel, ok := api.Relations[artist.ID]; ok {
 		artistRelation = &rel
 	}
@@ -82,4 +81,76 @@ func Artist(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Erreur d'affichage", http.StatusInternalServerError)
 	}
+}
+
+var orders = make(map[string]models.Order)
+
+func CreateOrder(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var order models.Order
+	err := json.NewDecoder(r.Body).Decode(&order)
+	if err != nil {
+		http.Error(w, "Données invalides", http.StatusBadRequest)
+		return
+	}
+
+	order.ID = fmt.Sprintf("ORD-%d", time.Now().Unix())
+	order.CreatedAt = time.Now().Format("2006-01-02 15:04:05")
+	order.Status = "pending"
+
+	totalPrice := 0.0
+	for _, ticket := range order.Tickets {
+		totalPrice += ticket.Price
+	}
+	order.TotalPrice = totalPrice
+
+	orders[order.ID] = order
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(order)
+}
+
+func ProcessPayment(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var paymentData struct {
+		OrderID    string `json:"orderId"`
+		CardNumber string `json:"cardNumber"`
+		CardExpiry string `json:"cardExpiry"`
+		CardCVV    string `json:"cardCvv"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&paymentData)
+	if err != nil {
+		http.Error(w, "Données invalides", http.StatusBadRequest)
+		return
+	}
+
+	order, exists := orders[paymentData.OrderID]
+	if !exists {
+		http.Error(w, "Commande introuvable", http.StatusNotFound)
+		return
+	}
+
+	if len(paymentData.CardNumber) != 16 || len(paymentData.CardCVV) != 3 {
+		http.Error(w, "Données de carte invalides", http.StatusBadRequest)
+		return
+	}
+
+	order.Status = "completed"
+	orders[paymentData.OrderID] = order
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"message": "Paiement effectué avec succès",
+		"order":   order,
+	})
 }

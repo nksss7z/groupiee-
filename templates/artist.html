@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
-    <button class="theme-toggle" id="themeToggle" title="Changer de thème">🌙</button>
-    <button class="share-btn" title="Partager">🔗</button>
+    <button class="theme-toggle" id="themeToggle" title="Changer de theme">Theme</button>
+    <button class="share-btn" title="Partager">Partager</button>
     
     <div id="artist-names" data-names="{{.Artist.Name}}|{{.Artist.Name}}|{{.Artist.Name}}" data-images="{{.Artist.Image}}|{{.Artist.Image}}|{{.Artist.Image}}" hidden></div>
     <div class="api-ribbons" aria-hidden="true">
@@ -63,7 +63,7 @@
 
                 {{if .Relation}}
                     <div class="map-section">
-                        <h2>🗺️ Carte des concerts</h2>
+                        <h2>Carte des concerts</h2>
                         <div id="map"></div>
                         <div id="locations-data" style="display: none;">
                             {{range $location, $dates := .Relation.DatesLocations}}
@@ -77,10 +77,15 @@
                     <div class="concerts-grid">
                         {{range $location, $dates := .Relation.DatesLocations}}
                         <div class="concert-card">
-                            <h3 class="concert-location">📍 {{$location}}</h3>
+                            <h3 class="concert-location">{{$location}}</h3>
                             <ul class="concert-dates">
                                 {{range $dates}}
-                                <li>{{.}}</li>
+                                <li>
+                                    <span class="date-text">{{.}}</span>
+                                    <button class="btn-book-ticket" data-location="{{$location}}" data-date="{{.}}" data-artist="{{$.Artist.Name}}" data-artist-id="{{$.Artist.ID}}">
+                                        Reserver
+                                    </button>
+                                </li>
                                 {{end}}
                             </ul>
                         </div>
@@ -101,8 +106,96 @@
             <p>&copy; 2025 Groupie Tracker - Tous droits réservés</p>
         </div>
     </footer>
+
+    <!-- Modal de réservation -->
+    <div id="bookingModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Réserver des billets</h2>
+            <div id="bookingDetails">
+                <p><strong>Artiste:</strong> <span id="modalArtist"></span></p>
+                <p><strong>Lieu:</strong> <span id="modalLocation"></span></p>
+                <p><strong>Date:</strong> <span id="modalDate"></span></p>
+            </div>
+            
+            <div class="ticket-selection">
+                <h3>Sélectionnez vos billets</h3>
+                <div class="ticket-type">
+                    <label>
+                        <input type="checkbox" class="ticket-checkbox" data-type="standard" data-price="50">
+                        Billet Standard - 50€
+                    </label>
+                    <input type="number" class="ticket-quantity" data-type="standard" min="0" max="10" value="0">
+                </div>
+                <div class="ticket-type">
+                    <label>
+                        <input type="checkbox" class="ticket-checkbox" data-type="vip" data-price="150">
+                        Billet VIP - 150€
+                    </label>
+                    <input type="number" class="ticket-quantity" data-type="vip" min="0" max="10" value="0">
+                </div>
+                <div class="ticket-type">
+                    <label>
+                        <input type="checkbox" class="ticket-checkbox" data-type="premium" data-price="250">
+                        Billet Premium - 250€
+                    </label>
+                    <input type="number" class="ticket-quantity" data-type="premium" min="0" max="10" value="0">
+                </div>
+            </div>
+
+            <div class="customer-info">
+                <h3>Vos informations</h3>
+                <input type="text" id="customerName" placeholder="Nom complet" required>
+                <input type="email" id="customerEmail" placeholder="Email" required>
+            </div>
+
+            <div class="total-price">
+                <strong>Total:</strong> <span id="totalPrice">0</span>€
+            </div>
+
+            <button id="proceedToPayment" class="btn-primary">Procéder au paiement</button>
+        </div>
+    </div>
+
+    <!-- Modal de paiement -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Paiement sécurisé</h2>
+            
+            <div class="payment-info">
+                <p><strong>Montant à payer:</strong> <span id="paymentAmount">0</span>€</p>
+            </div>
+
+            <div class="payment-form">
+                <input type="text" id="cardNumber" placeholder="Numéro de carte" maxlength="16" required>
+                <div class="card-details">
+                    <input type="text" id="cardExpiry" placeholder="MM/AA" maxlength="5" required>
+                    <input type="text" id="cardCVV" placeholder="CVV" maxlength="3" required>
+                </div>
+            </div>
+
+            <button id="confirmPayment" class="btn-primary">Confirmer le paiement</button>
+        </div>
+    </div>
+
+    <!-- Modal de confirmation -->
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Paiement reussi!</h2>
+            <div class="confirmation-message">
+                <p>Votre réservation a été confirmée.</p>
+                <p>Un email de confirmation a été envoyé à <span id="confirmEmail"></span></p>
+                <p><strong>Numéro de commande:</strong> <span id="orderId"></span></p>
+            </div>
+            <button class="btn-primary" onclick="location.reload()">Fermer</button>
+        </div>
+    </div>
+
         <script src="/static/js/ribbons.js"></script>
         <script src="/static/js/map.js"></script>
         <script src="/static/js/features.js"></script>
+        <script src="/static/js/booking.js"></script>
 </body>
 </html>
