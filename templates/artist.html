@@ -26,29 +26,40 @@
         .music-control:hover { transform: scale(1.05); }
         .music-control.playing { background: #700eb1; }
         
-        .lang-toggle {
+        .music-controls {
             position: fixed;
-            top: 20px;
-            right: 70px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: var(--card-bg, #1a1d2e);
-            border: 2px solid var(--primary-color, #6c63ff);
-            color: var(--text-color, #fff);
-            cursor: pointer;
+            bottom: 20px;
+            right: 20px;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
+            gap: 8px;
+            z-index: 9999;
+        }
+
+        .music-controls .music-control {
+            position: static;
+            margin: 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 14px;
+            font-size: 18px;
+            border-radius: 12px;
             transition: all 0.3s ease;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
-        .lang-toggle:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 15px rgba(108, 99, 255, 0.4);
+
+        .music-controls .music-control:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }
+
+        .music-controls .music-control.playing {
+            background: rgba(108, 99, 255, 0.2);
+            border-color: rgba(108, 99, 255, 0.5);
+        }
+        
+        
 
         .share-btn {
             left: 20px !important;
@@ -56,37 +67,89 @@
     </style>
 </head>
 <body>
-    <audio id="bgMusic" loop>
-        <source src="/assets/backgroundmusic.m4a" type="audio/mp4">
+    <audio id="bgMusic" loop preload="auto">
+        <source src="/assets/ytmp3free.cc_l2b-la-zone-youtubemp3free.org.mp3" type="audio/mpeg">
     </audio>
-    <button id="musicBtn" class="music-control">🔇</button>
+    <div class="music-controls">
+        <button id="prevBtn" class="music-control prev-btn" title="Reculer">⏮️</button>
+        <button id="musicBtn" class="music-control play-btn">🔇</button>
+        <button id="nextBtn" class="music-control next-btn" title="Avancer">⏭️</button>
+    </div>
 
     <script>
         const music = document.getElementById('bgMusic');
         const musicBtn = document.getElementById('musicBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
         let isPlaying = false;
+        let musicStarted = false;
         music.volume = 0.3;
+
+        // Playlist
+        const playlist = [
+            '/assets/ytmp3free.cc_l2b-la-zone-youtubemp3free.org.mp3',
+            '/assets/ytmp3free.cc_ariana-grande-ft-nicki-minaj-side-to-side-official-video-ft-nicki-minaj-youtubemp3free.org.mp3',
+            '/assets/ytmp3free.cc_meryl-shatta-confessions-feat-nken-youtubemp3free.org.mp3',
+            '/assets/ytmp3free.cc_sucre-sale-logobi-gt-youtubemp3free.org.mp3',
+            '/assets/ytmp3free.cc_werenoi-tu-connais-speed-up-youtubemp3free.org.mp3'
+        ];
+        let currentTrack = 0;
 
         const setState = (playing) => {
             isPlaying = playing;
-            musicBtn.textContent = playing ? '🔊' : '🔇';
+            musicBtn.textContent = playing ? '⏸️' : '▶️';
             musicBtn.classList.toggle('playing', playing);
         };
 
+        // Fonction pour démarrer la musique
+        const startMusic = () => {
+            if (!musicStarted) {
+                musicStarted = true;
+                music.play().then(() => {
+                    setState(true);
+                }).catch(() => {
+                    setState(false);
+                });
+            }
+        };
+
+        // Démarrer la musique au premier clic
+        document.addEventListener('click', startMusic, { once: true });
+        document.addEventListener('keydown', startMusic, { once: true });
+        document.addEventListener('touchstart', startMusic, { once: true });
+
         musicBtn.addEventListener('click', () => {
+            startMusic();
+            
             if (isPlaying) {
                 music.pause();
                 setState(false);
             } else {
-                music.play().then(() => setState(true));
+                music.play().then(() => {
+                    setState(true);
+                });
             }
         });
 
-        setState(false);
+        // Bouton Reculer (chanson précédente)
+        prevBtn.addEventListener('click', () => {
+            startMusic();
+            currentTrack = (currentTrack - 1 + playlist.length) % playlist.length;
+            music.src = playlist[currentTrack];
+            music.play().then(() => setState(true));
+        });
+
+        // Bouton Avancer (chanson suivante)
+        nextBtn.addEventListener('click', () => {
+            startMusic();
+            currentTrack = (currentTrack + 1) % playlist.length;
+            music.src = playlist[currentTrack];
+            music.play().then(() => setState(true));
+        });
     </script>
 
     <button class="theme-toggle" id="themeToggle" title="Changer de thème">🌙</button>
-    <button class="lang-toggle" id="langBtn" title="Switch language">🇫🇷</button>
+    
     
     <div id="artist-names" data-names="{{.Artist.Name}}|{{.Artist.Name}}|{{.Artist.Name}}" data-images="{{.Artist.Image}}|{{.Artist.Image}}|{{.Artist.Image}}" hidden></div>
     <div class="api-ribbons" aria-hidden="true">
@@ -313,167 +376,7 @@
         </div>
     </div>
 
-    <script>
-        // Système de traduction
-        let currentLang = localStorage.getItem('preferredLang') || 'fr';
-
-        const translations = {
-            fr: {
-                back: '← Retour',
-                infoTitle: 'Informations',
-                creationDate: 'Date de création:',
-                firstAlbum: 'Premier album:',
-                membersCount: 'Nombre de membres:',
-                membersTitle: 'Membres du groupe',
-                mapTitle: 'Carte des concerts',
-                concertsTitle: 'Dates de concerts',
-                noConcerts: 'Aucune date de concert disponible pour le moment.',
-                bookBtn: 'Réserver',
-                footer: '2025 Groupie Tracker - Tous droits réservés',
-                modalBooking: 'Réserver des billets',
-                modalArtist: 'Artiste:',
-                modalLocation: 'Lieu:',
-                modalDate: 'Date:',
-                selectTickets: 'Sélectionnez vos billets',
-                standardTicket: 'Billet Standard - 50€',
-                vipTicket: 'Billet VIP - 150€',
-                premiumTicket: 'Billet Premium - 250€',
-                customerInfo: 'Vos informations',
-                fullName: 'Nom complet',
-                email: 'Email',
-                total: 'Total:',
-                proceedPayment: 'Procéder au paiement',
-                securePayment: 'Paiement sécurisé',
-                amountToPay: 'Montant à payer:',
-                cardNumber: 'Numéro de carte',
-                cardExpiry: 'MM/AA',
-                cardCVV: 'CVV',
-                confirmPayment: 'Confirmer le paiement',
-                paymentSuccess: 'Paiement réussi!',
-                bookingConfirmed: 'Votre réservation a été confirmée.',
-                emailSent: 'Un email de confirmation a été envoyé à',
-                orderNumber: 'Numéro de commande:',
-                close: 'Fermer',
-                shareBtn: 'Partager',
-                themeToggle: 'Changer de thème',
-                langToggle: 'Changer la langue'
-            },
-            en: {
-                back: '← Back',
-                infoTitle: 'Information',
-                creationDate: 'Creation date:',
-                firstAlbum: 'First album:',
-                membersCount: 'Number of members:',
-                membersTitle: 'Band Members',
-                mapTitle: 'Concert Map',
-                concertsTitle: 'Concert Dates',
-                noConcerts: 'No concert dates available at the moment.',
-                bookBtn: 'Book',
-                footer: '2025 Groupie Tracker - All rights reserved',
-                modalBooking: 'Book Tickets',
-                modalArtist: 'Artist:',
-                modalLocation: 'Location:',
-                modalDate: 'Date:',
-                selectTickets: 'Select your tickets',
-                standardTicket: 'Standard Ticket - €50',
-                vipTicket: 'VIP Ticket - €150',
-                premiumTicket: 'Premium Ticket - €250',
-                customerInfo: 'Your Information',
-                fullName: 'Full name',
-                email: 'Email',
-                total: 'Total:',
-                proceedPayment: 'Proceed to payment',
-                securePayment: 'Secure Payment',
-                amountToPay: 'Amount to pay:',
-                cardNumber: 'Card number',
-                cardExpiry: 'MM/YY',
-                cardCVV: 'CVV',
-                confirmPayment: 'Confirm payment',
-                paymentSuccess: 'Payment successful!',
-                bookingConfirmed: 'Your booking has been confirmed.',
-                emailSent: 'A confirmation email has been sent to',
-                orderNumber: 'Order number:',
-                close: 'Close',
-                shareBtn: 'Share',
-                themeToggle: 'Change theme',
-                langToggle: 'Switch language'
-            }
-        };
-
-        function translateArtistPage(lang) {
-            const t = translations[lang];
-            document.documentElement.lang = lang;
-            
-            document.querySelector('.back-link').textContent = t.back;
-            document.querySelector('.info-title').textContent = t.infoTitle;
-            document.querySelector('.members-title').textContent = t.membersTitle;
-            document.querySelector('.map-title').textContent = t.mapTitle;
-            document.querySelector('.concerts-title').textContent = t.concertsTitle;
-            document.querySelector('.footer-text').textContent = t.footer;
-            document.querySelector('.share-btn').textContent = t.shareBtn;
-            document.querySelector('.share-btn').title = t.shareBtn;
-            document.getElementById('themeToggle').title = t.themeToggle;
-            document.getElementById('langBtn').title = t.langToggle;
-            
-            const infoLabels = document.querySelectorAll('.info-item .info-label');
-            if (infoLabels[0]) infoLabels[0].textContent = t.creationDate;
-            if (infoLabels[1]) infoLabels[1].textContent = t.firstAlbum;
-            if (infoLabels[2]) infoLabels[2].textContent = t.membersCount;
-            
-            document.querySelectorAll('.btn-book-ticket').forEach(btn => {
-                btn.textContent = t.bookBtn;
-            });
-            
-            const noConcertText = document.querySelector('.no-concerts-text');
-            if (noConcertText) noConcertText.textContent = t.noConcerts;
-            
-            document.querySelector('.modal-booking-title').textContent = t.modalBooking;
-            document.querySelector('.detail-artist').textContent = t.modalArtist;
-            document.querySelector('.detail-location').textContent = t.modalLocation;
-            document.querySelector('.detail-date').textContent = t.modalDate;
-            document.querySelector('.select-tickets-title').textContent = t.selectTickets;
-            document.querySelector('.ticket-standard').textContent = t.standardTicket;
-            document.querySelector('.ticket-vip').textContent = t.vipTicket;
-            document.querySelector('.ticket-premium').textContent = t.premiumTicket;
-            document.querySelector('.customer-info-title').textContent = t.customerInfo;
-            document.getElementById('customerName').placeholder = t.fullName;
-            document.getElementById('customerEmail').placeholder = t.email;
-            document.querySelector('.total-label').textContent = t.total;
-            document.getElementById('proceedToPayment').textContent = t.proceedPayment;
-            
-            document.querySelector('.modal-payment-title').textContent = t.securePayment;
-            document.querySelector('.payment-amount-label').textContent = t.amountToPay;
-            document.getElementById('cardNumber').placeholder = t.cardNumber;
-            document.getElementById('cardExpiry').placeholder = t.cardExpiry;
-            document.getElementById('cardCVV').placeholder = t.cardCVV;
-            document.getElementById('confirmPayment').textContent = t.confirmPayment;
-            
-            document.querySelector('.modal-success-title').textContent = t.paymentSuccess;
-            document.querySelector('.confirm-booking').textContent = t.bookingConfirmed;
-            const emailSentElement = document.querySelector('.confirm-email');
-            if (emailSentElement) {
-                const email = emailSentElement.querySelector('span').textContent;
-                emailSentElement.innerHTML = t.emailSent + ' <span id="confirmEmail">' + email + '</span>';
-            }
-            document.querySelector('.order-number-label').textContent = t.orderNumber;
-            document.querySelector('.btn-close-modal').textContent = t.close;
-        }
-
-        const langBtn = document.getElementById('langBtn');
-        if (currentLang === 'en') {
-            langBtn.textContent = '🇬🇧';
-            setTimeout(() => translateArtistPage('en'), 100);
-        } else {
-            langBtn.textContent = '🇫🇷';
-        }
-
-        langBtn.addEventListener('click', () => {
-            currentLang = currentLang === 'fr' ? 'en' : 'fr';
-            langBtn.textContent = currentLang === 'fr' ? '🇫🇷' : '🇬🇧';
-            translateArtistPage(currentLang);
-            localStorage.setItem('preferredLang', currentLang);
-        });
-    </script>
+    
 
     <script src="/static/js/ribbons.js"></script>
     <script src="/static/js/map.js"></script>

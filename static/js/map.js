@@ -30,10 +30,10 @@ document.addEventListener('DOMContentLoaded', function() {
         scrollWheelZoom: true
     }).setView([20, 0], 2);
 
-    // Ajouter le fond de carte (thème sombre moderne)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
+    // Ajouter le fond de carte (style géographique réaliste)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        subdomains: 'abc',
         maxZoom: 19
     }).addTo(map);
 

@@ -4,7 +4,7 @@
     box-sizing: border-box;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
 
 :root {
     --primary: #6366f1;
@@ -37,7 +37,7 @@
 }
 
 body {
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Roboto', sans-serif;
     background: var(--dark);
     color: var(--text);
     min-height: 100vh;
@@ -645,19 +645,19 @@ main {
 
 .concerts-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 2rem;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 2.5rem;
 }
 
 .concert-card {
-    background: rgba(15, 23, 42, 0.6);
-    padding: 2rem;
-    border-radius: 20px;
-    border-left: 4px solid var(--primary);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 2.5rem;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.4s ease;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
 }
 
 .concert-card::before {
@@ -665,30 +665,42 @@ main {
     position: absolute;
     top: 0;
     left: 0;
-    width: 4px;
-    height: 100%;
-    background: linear-gradient(180deg, var(--primary), var(--secondary));
-    transition: width 0.3s ease;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 1;
 }
 
-.concert-card:hover::before {
-    width: 100%;
-    opacity: 0.1;
+.concert-card::after {
+    content: '🎤';
+    position: absolute;
+    top: 20px;
+    right: 25px;
+    font-size: 2.5rem;
+    opacity: 0.15;
+    pointer-events: none;
+    z-index: 1;
 }
 
 .concert-card:hover {
-    transform: translateY(-5px);
-    box-shadow: none;
-    border-color: var(--primary);
+    transform: translateY(-10px);
+    box-shadow: 0 20px 50px rgba(102, 126, 234, 0.5);
+    border-color: rgba(255, 255, 255, 0.4);
 }
 
 .concert-location {
-    color: var(--text);
-    margin-bottom: 1.5rem;
-    font-size: 1.3rem;
-    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 1.8rem;
+    font-size: 1.5rem;
+    font-weight: 800;
     position: relative;
-    z-index: 1;
+    z-index: 2;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 
@@ -697,22 +709,32 @@ main {
 }
 
 .concert-dates li {
-    padding: 0.75rem 1rem;
-    margin: 0.5rem 0;
-    background: rgba(30, 41, 59, 0.8);
-    border-radius: 12px;
-    color: var(--text);
-    font-size: 0.9rem;
+    padding: 1.2rem;
+    margin: 0.8rem 0;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 600;
     transition: all 0.3s ease;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     position: relative;
-    z-index: 1;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .concert-dates li:hover {
-    background: rgba(99, 102, 241, 0.2);
-    transform: translateX(10px);
-    border-color: var(--primary);
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateX(8px);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.date-text {
+    font-weight: 700;
 }
 
 .no-concerts {
@@ -833,7 +855,7 @@ footer p {
 }
 
 .map-section h2 {
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    background: linear-gradient(135deg, #8b6f47, #d4a574);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -845,12 +867,13 @@ footer p {
 #map {
     height: 600px;
     width: 100%;
-    border-radius: 24px;
+    border-radius: 8px;
     overflow: hidden;
-    box-shadow: var(--shadow);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    border: 3px solid #8b6f47;
     position: relative;
     z-index: 1;
+    background: linear-gradient(135deg, #c19a6b 0%, #d4a574 50%, #a0826d 100%);
 }
 
 /* Loader de la carte */

@@ -11,9 +11,9 @@ import (
 )
 
 var (
-	Artists []models.Artist
+	Artists   []models.Artist
 	Locations map[int]models.Location
-	Dates map[int]models.Dates
+	Dates     map[int]models.Dates
 	Relations map[int]models.Relation
 )
 

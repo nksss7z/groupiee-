@@ -24,185 +24,126 @@
         .music-control:hover { transform: scale(1.05); }
         .music-control.playing { background: #700eb1; }
         
-        .lang-toggle {
+        .music-controls {
             position: fixed;
-            top: 20px;
-            right: 70px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: var(--card-bg, #1a1d2e);
-            border: 2px solid var(--primary-color, #6c63ff);
-            color: var(--text-color, #fff);
-            cursor: pointer;
+            bottom: 20px;
+            right: 20px;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
+            gap: 8px;
+            z-index: 9999;
+        }
+
+        .music-controls .music-control {
+            position: static;
+            margin: 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 14px;
+            font-size: 18px;
+            border-radius: 12px;
             transition: all 0.3s ease;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
-        .lang-toggle:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 15px rgba(108, 99, 255, 0.4);
+
+        .music-controls .music-control:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }
+
+        .music-controls .music-control.playing {
+            background: rgba(108, 99, 255, 0.2);
+            border-color: rgba(108, 99, 255, 0.5);
+        }
+        
+
     </style>
 </head>
 <body>
-    <!-- Musique de fond -->
     <audio id="bgMusic" loop>
-        <source src="/assets/backgroundmusic.m4a" type="audio/mp4">
+        <source src="/assets/ytmp3free.cc_l2b-la-zone-youtubemp3free.org.mp3" type="audio/mpeg">
     </audio>
-    <button id="musicBtn" class="music-control">🔇</button>
+    <div class="music-controls">
+        <button id="prevBtn" class="music-control prev-btn" title="Reculer">⏮️</button>
+        <button id="musicBtn" class="music-control play-btn">🔇</button>
+        <button id="nextBtn" class="music-control next-btn" title="Avancer">⏭️</button>
+    </div>
 
     <script>
         const music = document.getElementById('bgMusic');
         const musicBtn = document.getElementById('musicBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
         let isPlaying = false;
+        let musicStarted = false;
         music.volume = 0.3;
+
+        // Playlist
+        const playlist = [
+            '/assets/ytmp3free.cc_l2b-la-zone-youtubemp3free.org.mp3',
+            '/assets/ytmp3free.cc_ariana-grande-ft-nicki-minaj-side-to-side-official-video-ft-nicki-minaj-youtubemp3free.org.mp3',
+            '/assets/ytmp3free.cc_meryl-shatta-confessions-feat-nken-youtubemp3free.org.mp3',
+            '/assets/ytmp3free.cc_sucre-sale-logobi-gt-youtubemp3free.org.mp3',
+            '/assets/ytmp3free.cc_werenoi-tu-connais-speed-up-youtubemp3free.org.mp3'
+        ];
+        let currentTrack = 0;
 
         const setState = (playing) => {
             isPlaying = playing;
-            musicBtn.textContent = playing ? '🔊' : '🔇';
+            musicBtn.textContent = playing ? '⏸️' : '▶️';
             musicBtn.classList.toggle('playing', playing);
         };
 
+        // Fonction pour démarrer la musique
+        const startMusic = () => {
+            if (!musicStarted) {
+                musicStarted = true;
+                music.play().then(() => {
+                    setState(true);
+                }).catch(() => {
+                    setState(false);
+                });
+            }
+        };
+
+        // Démarrer la musique au premier clic
+        document.addEventListener('click', startMusic, { once: true });
+        document.addEventListener('keydown', startMusic, { once: true });
+        document.addEventListener('touchstart', startMusic, { once: true });
+
         musicBtn.addEventListener('click', () => {
+            startMusic();
+            
             if (isPlaying) {
                 music.pause();
                 setState(false);
             } else {
-                music.play().then(() => setState(true));
+                music.play().then(() => {
+                    setState(true);
+                });
             }
         });
 
-        // Musique coupée par défaut
-        setState(false);
+        // Bouton Reculer (chanson précédente)
+        prevBtn.addEventListener('click', () => {
+            startMusic();
+            currentTrack = (currentTrack - 1 + playlist.length) % playlist.length;
+            music.src = playlist[currentTrack];
+            music.play().then(() => setState(true));
+        });
+
+        // Bouton Avancer (chanson suivante)
+        nextBtn.addEventListener('click', () => {
+            startMusic();
+            currentTrack = (currentTrack + 1) % playlist.length;
+            music.src = playlist[currentTrack];
+            music.play().then(() => setState(true));
+        });
     </script>
 
     <button class="theme-toggle" id="themeToggle" title="Changer de thème">🌙</button>
-    <button class="lang-toggle" id="langBtn" title="Switch language">🇫🇷</button>
 
-    <script>
-        // Système de traduction
-        let currentLang = 'fr';
-        const translations = {
-            fr: {
-                title: '🎵 Groupie Tracker',
-                subtitle: 'Découvrez vos artistes préférés et leurs tournées',
-                search: 'Rechercher un artiste, un membre, une ville...',
-                sortBy: 'Trier par...',
-                sortNameAZ: 'Nom (A-Z)',
-                sortNameZA: 'Nom (Z-A)',
-                sortCreation: 'Année de création ↑',
-                sortCreationDesc: 'Année de création ↓',
-                sortAlbum: 'Premier album ↑',
-                sortAlbumDesc: 'Premier album ↓',
-                sortMembers: 'Nombre de membres ↑',
-                sortMembersDesc: 'Nombre de membres ↓',
-                favorites: '❤️ Favoris',
-                creationDate: 'Date de création:',
-                firstAlbum: 'Premier album:',
-                membersCount: 'Nombre de membres:',
-                members: 'Membres:',
-                creation: 'Création:',
-                firstAlbumLabel: 'Premier album:',
-                viewDetails: 'Voir les détails',
-                footer: '2025 Groupie Tracker - Tous droits réservés',
-                about: '📋 À propos',
-                membersTitle: '👥 Membres',
-                formation: '📅 Formation',
-                themeToggle: 'Changer de thème',
-                langToggle: 'Changer la langue'
-            },
-            en: {
-                title: '🎵 Groupie Tracker',
-                subtitle: 'Discover your favorite artists and their tours',
-                search: 'Search for an artist, member, city...',
-                sortBy: 'Sort by...',
-                sortNameAZ: 'Name (A-Z)',
-                sortNameZA: 'Name (Z-A)',
-                sortCreation: 'Creation year ↑',
-                sortCreationDesc: 'Creation year ↓',
-                sortAlbum: 'First album ↑',
-                sortAlbumDesc: 'First album ↓',
-                sortMembers: 'Number of members ↑',
-                sortMembersDesc: 'Number of members ↓',
-                favorites: '❤️ Favorites',
-                creationDate: 'Creation date:',
-                firstAlbum: 'First album:',
-                membersCount: 'Number of members:',
-                members: 'Members:',
-                creation: 'Creation:',
-                firstAlbumLabel: 'First album:',
-                viewDetails: 'View details',
-                footer: '2025 Groupie Tracker - All rights reserved',
-                about: '📋 About',
-                membersTitle: '👥 Members',
-                formation: '📅 Formation',
-                themeToggle: 'Change theme',
-                langToggle: 'Switch language'
-            }
-        };
-
-        function translatePage(lang) {
-            const t = translations[lang];
-            document.querySelector('header h1').textContent = t.title;
-            document.querySelector('.subtitle').textContent = t.subtitle;
-            document.getElementById('searchInput').placeholder = t.search;
-            document.querySelector('#sortBy option[value=""]').textContent = t.sortBy;
-            document.querySelector('#sortBy option[value="name"]').textContent = t.sortNameAZ;
-            document.querySelector('#sortBy option[value="name-desc"]').textContent = t.sortNameZA;
-            document.querySelector('#sortBy option[value="creation"]').textContent = t.sortCreation;
-            document.querySelector('#sortBy option[value="creation-desc"]').textContent = t.sortCreationDesc;
-            document.querySelector('#sortBy option[value="album"]').textContent = t.sortAlbum;
-            document.querySelector('#sortBy option[value="album-desc"]').textContent = t.sortAlbumDesc;
-            document.querySelector('#sortBy option[value="members"]').textContent = t.sortMembers;
-            document.querySelector('#sortBy option[value="members-desc"]').textContent = t.sortMembersDesc;
-            document.querySelector('.favorites-filter span:nth-child(3)').textContent = t.favorites;
-            document.querySelectorAll('.filters label span')[0].textContent = t.creationDate;
-            document.querySelectorAll('.filters label span')[1].textContent = t.firstAlbum;
-            document.querySelectorAll('.filters label span')[2].textContent = t.membersCount;
-            document.querySelector('footer p').textContent = t.footer;
-            document.getElementById('themeToggle').title = t.themeToggle;
-            document.getElementById('langBtn').title = t.langToggle;
-            
-            // Traduire les cartes d'artistes
-            document.querySelectorAll('.artist-card').forEach(card => {
-                const viewDetails = card.querySelector('.view-details');
-                if (viewDetails) viewDetails.textContent = t.viewDetails;
-                const metaElements = card.querySelectorAll('.artist-meta p strong');
-                if (metaElements[0]) metaElements[0].textContent = t.members;
-                if (metaElements[1]) metaElements[1].textContent = t.creation;
-                if (metaElements[2]) metaElements[2].textContent = t.firstAlbumLabel;
-            });
-
-            // Traduire la modal
-            const bioSections = document.querySelectorAll('.bio-section h3');
-            if (bioSections[0]) bioSections[0].textContent = t.about;
-            if (bioSections[1]) bioSections[1].textContent = t.membersTitle;
-            if (bioSections[2]) bioSections[2].textContent = t.formation;
-        }
-
-        const langBtn = document.getElementById('langBtn');
-        langBtn.addEventListener('click', () => {
-            currentLang = currentLang === 'fr' ? 'en' : 'fr';
-            langBtn.textContent = currentLang === 'fr' ? '🇫🇷' : '🇬🇧';
-            document.documentElement.lang = currentLang;
-            translatePage(currentLang);
-            localStorage.setItem('preferredLang', currentLang);
-        });
-
-        // Charger la langue préférée
-        const savedLang = localStorage.getItem('preferredLang');
-        if (savedLang && savedLang !== 'fr') {
-            currentLang = savedLang;
-            langBtn.textContent = '🇬🇧';
-            document.documentElement.lang = 'en';
-            setTimeout(() => translatePage('en'), 100);
-        }
-    </script>
 
     <div id="artist-names" data-names="{{range $i, $a := .Artists}}{{if $i}}|{{end}}{{$a.Name}}{{end}}" data-images="{{range $i, $a := .Artists}}{{if $i}}|{{end}}{{$a.Image}}{{end}}" hidden></div>
     <div class="api-ribbons" aria-hidden="true">

@@ -15,7 +15,6 @@ import (
 	"time"
 )
 
-
 func ParseID(id string) int {
 	var result int
 	for _, c := range id {
