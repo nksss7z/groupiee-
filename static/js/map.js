@@ -6,6 +6,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const locationItems = locationsData.querySelectorAll('.location-item');
     if (locationItems.length === 0) return;
 
+    // Récupérer la langue actuelle
+    let currentMapLang = localStorage.getItem('preferredLang') || 'fr';
+
+    const translations = {
+        fr: {
+            upcomingConcerts: '🎵 Concerts prévus:',
+            concert: 'concert',
+            concerts: 'concerts',
+            loading: 'Chargement de la carte...'
+        },
+        en: {
+            upcomingConcerts: '🎵 Upcoming concerts:',
+            concert: 'concert',
+            concerts: 'concerts',
+            loading: 'Loading map...'
+        }
+    };
+
     // Initialiser la carte centrée sur le monde
     const map = L.map('map', {
         zoomControl: true,
@@ -64,13 +82,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Fonction pour ajouter un marqueur
-    function addMarker(location, coords, dates, index) {
-        const marker = L.marker([coords.lat, coords.lon], { icon: customIcon }).addTo(map);
-        markerCoords.push({ lat: coords.lat, lon: coords.lon, index: index });
-        
-        // Créer le contenu du popup avec images et design enrichi
+    // Fonction pour générer le contenu du popup
+    function getPopupContent(location, dates) {
+        const t = translations[currentMapLang];
         const datesArray = dates.split(',');
+        const concertText = datesArray.length === 1 ? t.concert : t.concerts;
+        
         const datesHtml = datesArray.map(date => `
             <li class="popup-date-item">
                 <span class="date-icon">🎸</span>
@@ -78,25 +95,37 @@ document.addEventListener('DOMContentLoaded', function() {
             </li>
         `).join('');
         
-        const popupContent = `
+        return `
             <div class="map-popup">
                 <div class="popup-header">
                     <h3>📍 ${location.replace(/_/g, ' ').replace(/-/g, ' ')}</h3>
                 </div>
                 <div class="popup-dates">
-                    <strong>🎵 Concerts prévus:</strong>
+                    <strong>${t.upcomingConcerts}</strong>
                     <ul class="popup-dates-list">${datesHtml}</ul>
                 </div>
                 <div class="popup-footer">
-                    <span class="popup-count">${datesArray.length} concert${datesArray.length > 1 ? 's' : ''}</span>
+                    <span class="popup-count">${datesArray.length} ${concertText}</span>
                 </div>
             </div>
         `;
+    }
+
+    // Fonction pour ajouter un marqueur
+    function addMarker(location, coords, dates, index) {
+        const marker = L.marker([coords.lat, coords.lon], { icon: customIcon }).addTo(map);
+        markerCoords.push({ lat: coords.lat, lon: coords.lon, index: index });
+        
+        // Créer le contenu du popup avec images et design enrichi
+        const popupContent = getPopupContent(location, dates);
         
         marker.bindPopup(popupContent, {
             maxWidth: 320,
             className: 'custom-popup enhanced-popup'
         });
+        
+        // Stocker les données pour la mise à jour
+        marker._popupData = { location, dates };
         
         markers.push(marker);
         
@@ -105,6 +134,16 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => {
                 marker.getElement().classList.add('marker-animate');
             }, 100 * index);
+        });
+    }
+
+    // Fonction pour mettre à jour tous les popups
+    function updateAllPopups() {
+        markers.forEach(marker => {
+            if (marker._popupData) {
+                const { location, dates } = marker._popupData;
+                marker.getPopup().setContent(getPopupContent(location, dates));
+            }
         });
     }
 
@@ -155,7 +194,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const mapElement = document.getElementById('map');
     const loader = document.createElement('div');
     loader.className = 'map-loader';
-    loader.innerHTML = '<div class="loader-spinner"></div><p>Chargement de la carte...</p>';
+    const t = translations[currentMapLang];
+    loader.innerHTML = `<div class="loader-spinner"></div><p>${t.loading}</p>`;
     mapElement.appendChild(loader);
 
     // Retirer le loader après 2 secondes
@@ -163,4 +203,15 @@ document.addEventListener('DOMContentLoaded', function() {
         loader.style.opacity = '0';
         setTimeout(() => loader.remove(), 500);
     }, 2000);
+
+    // Écouter les changements de langue
+    const langBtn = document.getElementById('langBtn');
+    if (langBtn) {
+        langBtn.addEventListener('click', () => {
+            setTimeout(() => {
+                currentMapLang = localStorage.getItem('preferredLang') || 'fr';
+                updateAllPopups();
+            }, 100);
+        });
+    }
 });

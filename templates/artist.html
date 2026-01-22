@@ -4,12 +4,91 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{.Artist.Name}} - Groupie Tracker</title>
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .music-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #e41212;
+            color: white;
+            border: none;
+            padding: 12px 22px;
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: 16px;
+            z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            transition: transform 0.2s, background 0.2s;
+        }
+        .music-control:hover { transform: scale(1.05); }
+        .music-control.playing { background: #700eb1; }
+        
+        .lang-toggle {
+            position: fixed;
+            top: 20px;
+            right: 70px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--card-bg, #1a1d2e);
+            border: 2px solid var(--primary-color, #6c63ff);
+            color: var(--text-color, #fff);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        .lang-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(108, 99, 255, 0.4);
+        }
+
+        .share-btn {
+            left: 20px !important;
+        }
+    </style>
 </head>
 <body>
-    <button class="theme-toggle" id="themeToggle" title="Changer de theme">Theme</button>
+    <!-- Musique de fond -->
+    <audio id="bgMusic" loop>
+        <source src="/assets/backgroundmusic.m4a" type="audio/mp4">
+    </audio>
+    <button id="musicBtn" class="music-control">🔇</button>
+
+    <script>
+        const music = document.getElementById('bgMusic');
+        const musicBtn = document.getElementById('musicBtn');
+        let isPlaying = false;
+        music.volume = 0.3;
+
+        const setState = (playing) => {
+            isPlaying = playing;
+            musicBtn.textContent = playing ? '🔊' : '🔇';
+            musicBtn.classList.toggle('playing', playing);
+        };
+
+        musicBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                music.pause();
+                setState(false);
+            } else {
+                music.play().then(() => setState(true));
+            }
+        });
+
+        // Musique coupée par défaut
+        setState(false);
+    </script>
+
+    <button class="theme-toggle" id="themeToggle" title="Changer de thème">🌙</button>
+    <button class="lang-toggle" id="langBtn" title="Switch language">🇫🇷</button>
     <button class="share-btn" title="Partager">Partager</button>
     
     <div id="artist-names" data-names="{{.Artist.Name}}|{{.Artist.Name}}|{{.Artist.Name}}" data-images="{{.Artist.Image}}|{{.Artist.Image}}|{{.Artist.Image}}" hidden></div>
@@ -34,7 +113,7 @@
                         <img src="{{.Artist.Image}}" alt="{{.Artist.Name}}">
                     </div>
                     <div class="artist-info-detail">
-                        <h2>Informations</h2>
+                        <h2 class="info-title">Informations</h2>
                         <div class="info-grid">
                             <div class="info-item">
                                 <span class="info-label">Date de création:</span>
@@ -51,7 +130,7 @@
                         </div>
 
                         <div class="members-section">
-                            <h3>Membres du groupe</h3>
+                            <h3 class="members-title">Membres du groupe</h3>
                             <ul class="members-list">
                                 {{range .Artist.Members}}
                                 <li>{{.}}</li>
@@ -63,7 +142,7 @@
 
                 {{if .Relation}}
                     <div class="map-section">
-                        <h2>Carte des concerts</h2>
+                        <h2 class="map-title">Carte des concerts</h2>
                         <div id="map"></div>
                         <div id="locations-data" style="display: none;">
                             {{range $location, $dates := .Relation.DatesLocations}}
@@ -72,29 +151,29 @@
                         </div>
                     </div>
 
-                <div class="concerts-section">
-                    <h2>Dates de concerts</h2>
-                    <div class="concerts-grid">
-                        {{range $location, $dates := .Relation.DatesLocations}}
-                        <div class="concert-card">
-                            <h3 class="concert-location">{{$location}}</h3>
-                            <ul class="concert-dates">
-                                {{range $dates}}
-                                <li>
-                                    <span class="date-text">{{.}}</span>
-                                    <button class="btn-book-ticket" data-location="{{$location}}" data-date="{{.}}" data-artist="{{$.Artist.Name}}" data-artist-id="{{$.Artist.ID}}">
-                                        Reserver
-                                    </button>
-                                </li>
-                                {{end}}
-                            </ul>
+                    <div class="concerts-section">
+                        <h2 class="concerts-title">Dates de concerts</h2>
+                        <div class="concerts-grid">
+                            {{range $location, $dates := .Relation.DatesLocations}}
+                            <div class="concert-card">
+                                <h3 class="concert-location">{{$location}}</h3>
+                                <ul class="concert-dates">
+                                    {{range $dates}}
+                                    <li>
+                                        <span class="date-text">{{.}}</span>
+                                        <button class="btn-book-ticket" data-location="{{$location}}" data-date="{{.}}" data-artist="{{$.Artist.Name}}" data-artist-id="{{$.Artist.ID}}">
+                                            Réserver
+                                        </button>
+                                    </li>
+                                    {{end}}
+                                </ul>
+                            </div>
+                            {{end}}
                         </div>
-                        {{end}}
                     </div>
-                </div>
                 {{else}}
                 <div class="no-concerts">
-                    <p>Aucune date de concert disponible pour le moment.</p>
+                    <p class="no-concerts-text">Aucune date de concert disponible pour le moment.</p>
                 </div>
                 {{end}}
             </div>
@@ -103,7 +182,7 @@
 
     <footer>
         <div class="container">
-            <p>2025 Groupie Tracker - Tous droits réservés</p>
+            <p class="footer-text">2025 Groupie Tracker - Tous droits réservés</p>
         </div>
     </footer>
 
@@ -111,46 +190,46 @@
     <div id="bookingModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h2>Réserver des billets</h2>
+            <h2 class="modal-booking-title">Réserver des billets</h2>
             <div id="bookingDetails">
-                <p><strong>Artiste:</strong> <span id="modalArtist"></span></p>
-                <p><strong>Lieu:</strong> <span id="modalLocation"></span></p>
-                <p><strong>Date:</strong> <span id="modalDate"></span></p>
+                <p><strong class="detail-artist">Artiste:</strong> <span id="modalArtist"></span></p>
+                <p><strong class="detail-location">Lieu:</strong> <span id="modalLocation"></span></p>
+                <p><strong class="detail-date">Date:</strong> <span id="modalDate"></span></p>
             </div>
             
             <div class="ticket-selection">
-                <h3>Sélectionnez vos billets</h3>
+                <h3 class="select-tickets-title">Sélectionnez vos billets</h3>
                 <div class="ticket-type">
                     <label>
                         <input type="checkbox" class="ticket-checkbox" data-type="standard" data-price="50">
-                        Billet Standard - 50€
+                        <span class="ticket-standard">Billet Standard - 50€</span>
                     </label>
                     <input type="number" class="ticket-quantity" data-type="standard" min="0" max="10" value="0">
                 </div>
                 <div class="ticket-type">
                     <label>
                         <input type="checkbox" class="ticket-checkbox" data-type="vip" data-price="150">
-                        Billet VIP - 150€
+                        <span class="ticket-vip">Billet VIP - 150€</span>
                     </label>
                     <input type="number" class="ticket-quantity" data-type="vip" min="0" max="10" value="0">
                 </div>
                 <div class="ticket-type">
                     <label>
                         <input type="checkbox" class="ticket-checkbox" data-type="premium" data-price="250">
-                        Billet Premium - 250€
+                        <span class="ticket-premium">Billet Premium - 250€</span>
                     </label>
                     <input type="number" class="ticket-quantity" data-type="premium" min="0" max="10" value="0">
                 </div>
             </div>
 
             <div class="customer-info">
-                <h3>Vos informations</h3>
+                <h3 class="customer-info-title">Vos informations</h3>
                 <input type="text" id="customerName" placeholder="Nom complet" required>
                 <input type="email" id="customerEmail" placeholder="Email" required>
             </div>
 
             <div class="total-price">
-                <strong>Total:</strong> <span id="totalPrice">0</span>€
+                <strong class="total-label">Total:</strong> <span id="totalPrice">0</span>€
             </div>
 
             <button id="proceedToPayment" class="btn-primary">Procéder au paiement</button>
@@ -161,10 +240,10 @@
     <div id="paymentModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h2>Paiement sécurisé</h2>
+            <h2 class="modal-payment-title">Paiement sécurisé</h2>
             
             <div class="payment-info">
-                <p><strong>Montant à payer:</strong> <span id="paymentAmount">0</span>€</p>
+                <p><strong class="payment-amount-label">Montant à payer:</strong> <span id="paymentAmount">0</span>€</p>
             </div>
 
             <div class="payment-form">
@@ -183,19 +262,182 @@
     <div id="confirmationModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h2>Paiement reussi!</h2>
+            <h2 class="modal-success-title">Paiement réussi!</h2>
             <div class="confirmation-message">
-                <p>Votre réservation a été confirmée.</p>
-                <p>Un email de confirmation a été envoyé à <span id="confirmEmail"></span></p>
-                <p><strong>Numéro de commande:</strong> <span id="orderId"></span></p>
+                <p class="confirm-booking">Votre réservation a été confirmée.</p>
+                <p class="confirm-email">Un email de confirmation a été envoyé à <span id="confirmEmail"></span></p>
+                <p><strong class="order-number-label">Numéro de commande:</strong> <span id="orderId"></span></p>
             </div>
-            <button class="btn-primary" onclick="location.reload()">Fermer</button>
+            <button class="btn-primary btn-close-modal">Fermer</button>
         </div>
     </div>
 
-        <script src="/static/js/ribbons.js"></script>
-        <script src="/static/js/map.js"></script>
-        <script src="/static/js/features.js"></script>
-        <script src="/static/js/booking.js"></script>
+    <script>
+        // Système de traduction
+        let currentLang = localStorage.getItem('preferredLang') || 'fr';
+
+        const translations = {
+            fr: {
+                back: '← Retour',
+                infoTitle: 'Informations',
+                creationDate: 'Date de création:',
+                firstAlbum: 'Premier album:',
+                membersCount: 'Nombre de membres:',
+                membersTitle: 'Membres du groupe',
+                mapTitle: 'Carte des concerts',
+                concertsTitle: 'Dates de concerts',
+                noConcerts: 'Aucune date de concert disponible pour le moment.',
+                bookBtn: 'Réserver',
+                footer: '2025 Groupie Tracker - Tous droits réservés',
+                modalBooking: 'Réserver des billets',
+                modalArtist: 'Artiste:',
+                modalLocation: 'Lieu:',
+                modalDate: 'Date:',
+                selectTickets: 'Sélectionnez vos billets',
+                standardTicket: 'Billet Standard - 50€',
+                vipTicket: 'Billet VIP - 150€',
+                premiumTicket: 'Billet Premium - 250€',
+                customerInfo: 'Vos informations',
+                fullName: 'Nom complet',
+                email: 'Email',
+                total: 'Total:',
+                proceedPayment: 'Procéder au paiement',
+                securePayment: 'Paiement sécurisé',
+                amountToPay: 'Montant à payer:',
+                cardNumber: 'Numéro de carte',
+                cardExpiry: 'MM/AA',
+                cardCVV: 'CVV',
+                confirmPayment: 'Confirmer le paiement',
+                paymentSuccess: 'Paiement réussi!',
+                bookingConfirmed: 'Votre réservation a été confirmée.',
+                emailSent: 'Un email de confirmation a été envoyé à',
+                orderNumber: 'Numéro de commande:',
+                close: 'Fermer',
+                shareBtn: 'Partager',
+                themeToggle: 'Changer de thème',
+                langToggle: 'Changer la langue'
+            },
+            en: {
+                back: '← Back',
+                infoTitle: 'Information',
+                creationDate: 'Creation date:',
+                firstAlbum: 'First album:',
+                membersCount: 'Number of members:',
+                membersTitle: 'Band Members',
+                mapTitle: 'Concert Map',
+                concertsTitle: 'Concert Dates',
+                noConcerts: 'No concert dates available at the moment.',
+                bookBtn: 'Book',
+                footer: '2025 Groupie Tracker - All rights reserved',
+                modalBooking: 'Book Tickets',
+                modalArtist: 'Artist:',
+                modalLocation: 'Location:',
+                modalDate: 'Date:',
+                selectTickets: 'Select your tickets',
+                standardTicket: 'Standard Ticket - €50',
+                vipTicket: 'VIP Ticket - €150',
+                premiumTicket: 'Premium Ticket - €250',
+                customerInfo: 'Your Information',
+                fullName: 'Full name',
+                email: 'Email',
+                total: 'Total:',
+                proceedPayment: 'Proceed to payment',
+                securePayment: 'Secure Payment',
+                amountToPay: 'Amount to pay:',
+                cardNumber: 'Card number',
+                cardExpiry: 'MM/YY',
+                cardCVV: 'CVV',
+                confirmPayment: 'Confirm payment',
+                paymentSuccess: 'Payment successful!',
+                bookingConfirmed: 'Your booking has been confirmed.',
+                emailSent: 'A confirmation email has been sent to',
+                orderNumber: 'Order number:',
+                close: 'Close',
+                shareBtn: 'Share',
+                themeToggle: 'Change theme',
+                langToggle: 'Switch language'
+            }
+        };
+
+        function translateArtistPage(lang) {
+            const t = translations[lang];
+            document.documentElement.lang = lang;
+            
+            document.querySelector('.back-link').textContent = t.back;
+            document.querySelector('.info-title').textContent = t.infoTitle;
+            document.querySelector('.members-title').textContent = t.membersTitle;
+            document.querySelector('.map-title').textContent = t.mapTitle;
+            document.querySelector('.concerts-title').textContent = t.concertsTitle;
+            document.querySelector('.footer-text').textContent = t.footer;
+            document.querySelector('.share-btn').textContent = t.shareBtn;
+            document.querySelector('.share-btn').title = t.shareBtn;
+            document.getElementById('themeToggle').title = t.themeToggle;
+            document.getElementById('langBtn').title = t.langToggle;
+            
+            const infoLabels = document.querySelectorAll('.info-item .info-label');
+            if (infoLabels[0]) infoLabels[0].textContent = t.creationDate;
+            if (infoLabels[1]) infoLabels[1].textContent = t.firstAlbum;
+            if (infoLabels[2]) infoLabels[2].textContent = t.membersCount;
+            
+            document.querySelectorAll('.btn-book-ticket').forEach(btn => {
+                btn.textContent = t.bookBtn;
+            });
+            
+            const noConcertText = document.querySelector('.no-concerts-text');
+            if (noConcertText) noConcertText.textContent = t.noConcerts;
+            
+            document.querySelector('.modal-booking-title').textContent = t.modalBooking;
+            document.querySelector('.detail-artist').textContent = t.modalArtist;
+            document.querySelector('.detail-location').textContent = t.modalLocation;
+            document.querySelector('.detail-date').textContent = t.modalDate;
+            document.querySelector('.select-tickets-title').textContent = t.selectTickets;
+            document.querySelector('.ticket-standard').textContent = t.standardTicket;
+            document.querySelector('.ticket-vip').textContent = t.vipTicket;
+            document.querySelector('.ticket-premium').textContent = t.premiumTicket;
+            document.querySelector('.customer-info-title').textContent = t.customerInfo;
+            document.getElementById('customerName').placeholder = t.fullName;
+            document.getElementById('customerEmail').placeholder = t.email;
+            document.querySelector('.total-label').textContent = t.total;
+            document.getElementById('proceedToPayment').textContent = t.proceedPayment;
+            
+            document.querySelector('.modal-payment-title').textContent = t.securePayment;
+            document.querySelector('.payment-amount-label').textContent = t.amountToPay;
+            document.getElementById('cardNumber').placeholder = t.cardNumber;
+            document.getElementById('cardExpiry').placeholder = t.cardExpiry;
+            document.getElementById('cardCVV').placeholder = t.cardCVV;
+            document.getElementById('confirmPayment').textContent = t.confirmPayment;
+            
+            document.querySelector('.modal-success-title').textContent = t.paymentSuccess;
+            document.querySelector('.confirm-booking').textContent = t.bookingConfirmed;
+            const emailSentElement = document.querySelector('.confirm-email');
+            if (emailSentElement) {
+                const email = emailSentElement.querySelector('span').textContent;
+                emailSentElement.innerHTML = t.emailSent + ' <span id="confirmEmail">' + email + '</span>';
+            }
+            document.querySelector('.order-number-label').textContent = t.orderNumber;
+            document.querySelector('.btn-close-modal').textContent = t.close;
+        }
+
+        const langBtn = document.getElementById('langBtn');
+        if (currentLang === 'en') {
+            langBtn.textContent = '🇬🇧';
+            setTimeout(() => translateArtistPage('en'), 100);
+        } else {
+            langBtn.textContent = '🇫🇷';
+        }
+
+        langBtn.addEventListener('click', () => {
+            currentLang = currentLang === 'fr' ? 'en' : 'fr';
+            langBtn.textContent = currentLang === 'fr' ? '🇫🇷' : '🇬🇧';
+            translateArtistPage(currentLang);
+            localStorage.setItem('preferredLang', currentLang);
+        });
+    </script>
+
+    <script src="/static/js/ribbons.js"></script>
+    <script src="/static/js/map.js"></script>
+    <script src="/static/js/features.js"></script>
+    <script src="/static/js/booking.js"></script>
+    <script src="/static/js/bio.js"></script>
 </body>
 </html>
