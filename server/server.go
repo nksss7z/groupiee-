@@ -19,7 +19,11 @@ func Start(port string) error {
 	http.HandleFunc("/api/order", handlers.CreateOrder)
 	http.HandleFunc("/api/payment", handlers.ProcessPayment)
 
+	// Servir les fichiers statiques
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+
+	// Servir les fichiers assets (musique, etc.)
+	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
 
 	// Certificats de développement auto-signés (générés si manquants)
 	certPath := filepath.FromSlash("certs/localhost.pem")

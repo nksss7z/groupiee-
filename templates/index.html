@@ -5,8 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Groupie Tracker - Accueil</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .music-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #e41212;
+            color: white;
+            border: none;
+            padding: 12px 22px;
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: 16px;
+            z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            transition: transform 0.2s, background 0.2s;
+        }
+        .music-control:hover { transform: scale(1.05); }
+        .music-control.playing { background: #700eb1; }
+    </style>
 </head>
 <body>
+    <!-- Musique de fond -->
+    <audio id="bgMusic" loop>
+        <source src="/assets/backgroundmusic.m4a" type="audio/mp4">
+    </audio>
+    <button id="musicBtn" class="music-control">▶️</button>
+
+    <script>
+        const music = document.getElementById('bgMusic');
+        const musicBtn = document.getElementById('musicBtn');
+        let isPlaying = false;
+        music.volume = 0.3;
+
+        const setState = (playing) => {
+            isPlaying = playing;
+            musicBtn.textContent = playing ? '🔊' : '🔇';
+            musicBtn.classList.toggle('playing', playing);
+        };
+
+        musicBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                music.pause();
+                setState(false);
+            } else {
+                music.play().then(() => setState(true));
+            }
+        });
+
+        // Tentative d'autoplay (sera bloquée sur certains navigateurs)
+        music.play().then(() => setState(true)).catch(() => {/* clic requis */});
+    </script>
+
     <button class="theme-toggle" id="themeToggle" title="Changer de thème">🌙</button>
     
     <div id="artist-names" data-names="{{range $i, $a := .Artists}}{{if $i}}|{{end}}{{$a.Name}}{{end}}" data-images="{{range $i, $a := .Artists}}{{if $i}}|{{end}}{{$a.Image}}{{end}}" hidden></div>
