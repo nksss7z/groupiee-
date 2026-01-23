@@ -194,3 +194,182 @@ func ProcessPayPalPayment(w http.ResponseWriter, r *http.Request) {
 		"order":   order,
 	})
 }
+
+// Gestion des comptes bancaires
+var bankAccounts = make(map[string]models.BankAccount)
+
+func SetupBankAccount(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var bankAccount models.BankAccount
+	err := json.NewDecoder(r.Body).Decode(&bankAccount)
+	if err != nil {
+		http.Error(w, "Données invalides", http.StatusBadRequest)
+		return
+	}
+
+	if bankAccount.IBAN == "" || bankAccount.AccountHolder == "" {
+		http.Error(w, "IBAN et nom du titulaire requis", http.StatusBadRequest)
+		return
+	}
+
+	bankAccount.ID = utils.GenerateID()
+	bankAccount.CreatedAt = time.Now().Format(time.RFC3339)
+	bankAccount.UpdatedAt = time.Now().Format(time.RFC3339)
+
+	if bankAccount.Currency == "" {
+		bankAccount.Currency = "EUR"
+	}
+
+	bankAccounts[bankAccount.ID] = bankAccount
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"message": "Compte bancaire configuré avec succès",
+		"account": bankAccount,
+	})
+}
+
+func GetBankAccount(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if len(bankAccounts) == 0 {
+		http.Error(w, "Aucun compte bancaire configuré", http.StatusNotFound)
+		return
+	}
+
+	var account models.BankAccount
+	for _, acc := range bankAccounts {
+		if acc.IsDefault {
+			account = acc
+			break
+		}
+	}
+
+	if account.ID == "" {
+		for _, acc := range bankAccounts {
+			account = acc
+			break
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(account)
+}
+
+// Gestion des paiements
+var payments = make(map[string]models.Payment)
+
+func ProcessBankTransfer(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		OrderID string `json:"orderId"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "Données invalides", http.StatusBadRequest)
+		return
+	}
+
+	order, exists := orders[req.OrderID]
+	if !exists {
+		http.Error(w, "Commande non trouvée", http.StatusNotFound)
+		return
+	}
+
+	if len(bankAccounts) == 0 {
+		http.Error(w, "Aucun compte bancaire configuré", http.StatusInternalServerError)
+		return
+	}
+
+	var account models.BankAccount
+	for _, acc := range bankAccounts {
+		account = acc
+		break
+	}
+
+	payment := models.Payment{
+		ID:            utils.GenerateID(),
+		OrderID:       req.OrderID,
+		Amount:        order.TotalPrice,
+		Currency:      account.Currency,
+		Status:        "pending",
+		PaymentMethod: "bank_transfer",
+		BankAccountID: account.ID,
+		CreatedAt:     time.Now().Format(time.RFC3339),
+	}
+
+	payments[payment.ID] = payment
+	order.PaymentID = payment.ID
+	orders[req.OrderID] = order
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"message": "Paiement par virement bancaire initié",
+		"payment": payment,
+		"bankAccount": map[string]string{
+			"iban":           account.IBAN,
+			"bic":            account.BIC,
+			"accountHolder":  account.AccountHolder,
+			"bankName":       account.BankName,
+			"amount":         fmt.Sprintf("%.2f", order.TotalPrice),
+			"currency":       account.Currency,
+			"orderReference": req.OrderID,
+		},
+	})
+}
+
+func ConfirmBankTransfer(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		PaymentID string `json:"paymentId"`
+		OrderID   string `json:"orderId"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "Données invalides", http.StatusBadRequest)
+		return
+	}
+
+	payment, exists := payments[req.PaymentID]
+	if !exists {
+		http.Error(w, "Paiement non trouvé", http.StatusNotFound)
+		return
+	}
+
+	payment.Status = "completed"
+	payment.CompletedAt = time.Now().Format(time.RFC3339)
+	payments[req.PaymentID] = payment
+
+	order, exists := orders[req.OrderID]
+	if exists {
+		order.Status = "completed"
+		orders[req.OrderID] = order
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"message": "Paiement confirmé avec succès",
+		"payment": payment,
+	})
+}

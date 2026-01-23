@@ -46,4 +46,29 @@ type Order struct {
 	TotalPrice   float64  `json:"totalPrice"`
 	Status       string   `json:"status"` // "pending", "completed", "cancelled"
 	CreatedAt    string   `json:"createdAt"`
+	PaymentID    string   `json:"paymentId"`
+}
+
+type BankAccount struct {
+	ID            string `json:"id"`
+	AccountHolder string `json:"accountHolder"`
+	IBAN          string `json:"iban"`
+	BIC           string `json:"bic"`
+	BankName      string `json:"bankName"`
+	Currency      string `json:"currency"`
+	CreatedAt     string `json:"createdAt"`
+	UpdatedAt     string `json:"updatedAt"`
+	IsDefault     bool   `json:"isDefault"`
+}
+
+type Payment struct {
+	ID            string  `json:"id"`
+	OrderID       string  `json:"orderId"`
+	Amount        float64 `json:"amount"`
+	Currency      string  `json:"currency"`
+	Status        string  `json:"status"`        // "pending", "completed", "failed"
+	PaymentMethod string  `json:"paymentMethod"` // "bank_transfer", "card"
+	BankAccountID string  `json:"bankAccountId"`
+	CreatedAt     string  `json:"createdAt"`
+	CompletedAt   string  `json:"completedAt"`
 }

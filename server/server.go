@@ -17,6 +17,14 @@ func Start(port string) error {
 	http.HandleFunc("/api/payment", handlers.ProcessPayment)
 	http.HandleFunc("/api/payment/paypal", handlers.ProcessPayPalPayment)
 
+	// Routes pour la gestion des comptes bancaires
+	http.HandleFunc("/api/bank-account/setup", handlers.SetupBankAccount)
+	http.HandleFunc("/api/bank-account", handlers.GetBankAccount)
+
+	// Routes pour les virements bancaires
+	http.HandleFunc("/api/payment/bank-transfer", handlers.ProcessBankTransfer)
+	http.HandleFunc("/api/payment/confirm-transfer", handlers.ConfirmBankTransfer)
+
 	// Servir les fichiers statiques
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 

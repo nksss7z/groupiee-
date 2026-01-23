@@ -8,6 +8,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"errors"
+	"fmt"
 	"math/big"
 	"net"
 	"os"
@@ -23,6 +24,12 @@ func ParseID(id string) int {
 		}
 	}
 	return result
+}
+
+func GenerateID() string {
+	b := make([]byte, 16)
+	rand.Read(b)
+	return fmt.Sprintf("%x", b)
 }
 
 func EnsureDevCert(certPath, keyPath string) error {
